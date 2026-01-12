@@ -44,7 +44,6 @@ table {
 th, td {
   padding: 8px;
   border-bottom: 1px solid #ddd;
-  text-align: left;
 }
 
 th {
@@ -70,18 +69,18 @@ th {
 </div>
 
 <div class="card buttons">
-  <button onclick="loadToday()">📅 Dnešní historie</button>
-  <button onclick="loadMonth()">🗓️ Měsíční historie</button>
+  <button onclick="loadToday()">📅 Dnešek</button>
+  <button onclick="loadMonth()">🗓️ Tento měsíc</button>
 </div>
 
 <div class="card">
-  <h3>Historie</h3>
+  <h3>Historie (souhrn)</h3>
   <table>
     <thead>
       <tr>
-        <th>Čas</th>
-        <th>Výkon (W)</th>
-        <th>Energie (kWh)</th>
+        <th>Období</th>
+        <th>Průměrný výkon (W)</th>
+        <th>Spotřeba (kWh)</th>
       </tr>
     </thead>
     <tbody id="history"></tbody>
@@ -107,40 +106,53 @@ async function loadToday() {
   const res = await fetch(BASE_URL + "/feeds.json?results=500");
   const data = await res.json();
 
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
 
-  renderHistory(data.feeds, todayStart);
+  renderSummary(data.feeds, start, "Dnes");
 }
 
 async function loadMonth() {
   const res = await fetch(BASE_URL + "/feeds.json?results=2000");
   const data = await res.json();
 
-  const monthStart = new Date();
-  monthStart.setDate(1);
-  monthStart.setHours(0, 0, 0, 0);
+  const start = new Date();
+  start.setDate(1);
+  start.setHours(0, 0, 0, 0);
 
-  renderHistory(data.feeds, monthStart);
+  renderSummary(data.feeds, start, "Tento měsíc");
 }
 
-function renderHistory(feeds, startTime) {
+function renderSummary(feeds, startTime, label) {
   const tbody = document.getElementById("history");
   tbody.innerHTML = "";
 
+  let powers = [];
+  let energies = [];
+
   feeds.forEach(f => {
     const time = new Date(f.created_at);
-
     if (time >= startTime) {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${time.toLocaleString()}</td>
-        <td>${Number(f.field4).toFixed(0)}</td>
-        <td>${Number(f.field2).toFixed(3)}</td>
-      `;
-      tbody.appendChild(tr);
+      powers.push(Number(f.field4));
+      energies.push(Number(f.field2));
     }
   });
+
+  if (powers.length === 0) return;
+
+  const avgPower =
+    powers.reduce((a, b) => a + b, 0) / powers.length;
+
+  const consumption =
+    Math.max(...energies) - Math.min(...energies);
+
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td>${label}</td>
+    <td>${avgPower.toFixed(0)}</td>
+    <td>${consumption.toFixed(3)}</td>
+  `;
+  tbody.appendChild(tr);
 }
 
 // auto refresh
