@@ -56,18 +56,17 @@
   </div>
 
   <div class="card buttons">
-    <button onclick="loadToday()">📅 Dnešní historie</button>
-    <button onclick="loadMonth()">🗓️ Měsíční historie</button>
+    <button onclick="loadDaily()">📅 Denní spotřeba</button>
+    <button onclick="loadMonthly()">🗓️ Měsíční spotřeba</button>
   </div>
 
   <div class="card">
-    <h3>Historie</h3>
+    <h3>Historie spotřeby</h3>
     <table>
       <thead>
         <tr>
-          <th>Čas</th>
-          <th>Výkon (W)</th>
-          <th>Energie (kWh)</th>
+          <th>Datum</th>
+          <th>Spotřeba (kWh)</th>
         </tr>
       </thead>
       <tbody id="history"></tbody>
@@ -89,47 +88,59 @@
       }
     }
 
-    async function loadToday() {
-      try {
-        const res = await fetch(BASE_URL + "/feeds.json?results=200");
-        const data = await res.json();
-        renderHistory(data.feeds, 1);
-      } catch (e) {
-        console.error("Chyba při načítání dnešní historie:", e);
-      }
-    }
-
-    async function loadMonth() {
+    async function loadDaily() {
       try {
         const res = await fetch(BASE_URL + "/feeds.json?results=800");
         const data = await res.json();
-        renderHistory(data.feeds, 30);
+        renderAggregatedHistory(data.feeds, 1); // denní
+      } catch (e) {
+        console.error("Chyba při načítání denní historie:", e);
+      }
+    }
+
+    async function loadMonthly() {
+      try {
+        const res = await fetch(BASE_URL + "/feeds.json?results=800");
+        const data = await res.json();
+        renderAggregatedHistory(data.feeds, 30); // měsíční
       } catch (e) {
         console.error("Chyba při načítání měsíční historie:", e);
       }
     }
 
-    function renderHistory(feeds, days) {
+    function renderAggregatedHistory(feeds, daysBack) {
       const tbody = document.getElementById("history");
       tbody.innerHTML = "";
       const now = new Date();
 
-      feeds.reverse().forEach(f => {
+      // vytvoříme objekt { 'YYYY-MM-DD': [field2 values] }
+      const dailyData = {};
+      feeds.forEach(f => {
         const time = new Date(f.created_at);
         const diffDays = (now - time) / (1000 * 60 * 60 * 24);
-        if (diffDays <= days) {
+        if (diffDays <= daysBack && f.field2 !== null) {
+          const dateStr = time.toISOString().split('T')[0];
+          if (!dailyData[dateStr]) dailyData[dateStr] = [];
+          dailyData[dateStr].push(Number(f.field2));
+        }
+      });
+
+      // spočítáme denní spotřebu: poslední - první hodnota energie
+      Object.keys(dailyData).sort().forEach(date => {
+        const values = dailyData[date];
+        if (values.length > 1) {
+          const consumption = values[values.length - 1] - values[0];
           const tr = document.createElement("tr");
           tr.innerHTML = `
-            <td>${time.toLocaleString()}</td>
-            <td>${f.field4 ? Number(f.field4).toFixed(0) : "---"}</td>
-            <td>${f.field2 ? Number(f.field2).toFixed(3) : "---"}</td>
+            <td>${date}</td>
+            <td>${consumption.toFixed(3)}</td>
           `;
           tbody.appendChild(tr);
         }
       });
     }
 
-    // auto refresh
+    // auto refresh aktuálních hodnot
     loadLatest();
     setInterval(loadLatest, 30000);
   </script>
