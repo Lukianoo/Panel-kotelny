@@ -1,137 +1,137 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-<meta charset="UTF-8">
-<title>Historie spotřeby uhlí</title>
-
-<style>
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: linear-gradient(180deg, #1f3b73, #0f2347);
-    padding: 30px;
-}
-
-/* KONTEJNER */
-.container {
-    max-width: 1100px;
-    margin: auto;
-}
-
-/* TLAČÍTKA */
-.buttons {
-    margin-bottom: 20px;
-}
-
-.btn {
-    width: 100%;
-    border: none;
-    color: white;
-    padding: 14px;
-    font-size: 16px;
-    border-radius: 10px;
-    margin-bottom: 10px;
-    cursor: pointer;
-}
-
-.btn.orange { background: #ef6c00; }
-.btn.blue   { background: #1565c0; }
-.btn.green  { background: #2e7d32; }
-
-/* KARTA */
-.card {
-    background: white;
-    border-radius: 15px;
-    padding: 20px;
-}
-
-/* NADPIS */
-.card h3 {
-    margin-top: 0;
-    color: #0d47a1;
-}
-
-/* TABULKA */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
-}
-
-th {
-    background: #f1f1f1;
-    text-align: left;
-    padding: 10px;
-}
-
-td {
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
-}
-
-td:nth-child(2),
-td:nth-child(3) {
-    text-align: center;
-}
-</style>
+  <meta charset="UTF-8">
+  <title>Elektroměr – přehled</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 { margin-bottom: 10px; }
+    .card {
+      background: white;
+      padding: 20px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .value {
+      font-size: 2em;
+      font-weight: bold;
+    }
+    .buttons button {
+      padding: 10px 15px;
+      margin-right: 10px;
+      font-size: 1em;
+      cursor: pointer;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+      text-align: left;
+    }
+    th { background: #eee; }
+  </style>
 </head>
-
 <body>
-<div class="container">
+  <h1>⚡ Elektroměr – online přehled</h1>
 
-    <!-- TLAČÍTKA -->
-    <div class="buttons">
-        <button class="btn orange">📅 Denní historie spotřeby</button>
-        <button class="btn blue">🗓️ Měsíční historie spotřeby</button>
-        <button class="btn green">📊 Celková historie spotřeby</button>
-    </div>
+  <div class="card">
+    <div>Aktuální výkon</div>
+    <div class="value" id="power">---</div>
+    <div>W</div>
+  </div>
 
-    <!-- TABULKA -->
-    <div class="card">
-        <h3>📊 Denní historie – uhlí & cena</h3>
+  <div class="card">
+    <div>Celková energie</div>
+    <div class="value" id="energy">---</div>
+    <div>kWh</div>
+  </div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>Datum</th>
-                    <th>Spotřeba (kg)</th>
-                    <th>Cena (Kč)</th>
-                </tr>
-            </thead>
-            <tbody id="history">
-                <!-- data se plní JS -->
-            </tbody>
-        </table>
-    </div>
+  <div class="card buttons">
+    <button onclick="loadToday()">📅 Dnešní historie</button>
+    <button onclick="loadMonth()">🗓️ Měsíční historie</button>
+  </div>
 
-</div>
+  <div class="card">
+    <h3>Historie</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Čas</th>
+          <th>Výkon (W)</th>
+          <th>Energie (kWh)</th>
+        </tr>
+      </thead>
+      <tbody id="history"></tbody>
+    </table>
+  </div>
 
-<script>
-const data = [
-    { date: "12. 1. 2026", kg: 10, price: 62 },
-    { date: "11. 1. 2026", kg: 30, price: 186 },
-    { date: "10. 1. 2026", kg: 28, price: 174 },
-    { date: "9. 1. 2026",  kg: 30, price: 185 },
-    { date: "8. 1. 2026",  kg: 34, price: 210 },
-    { date: "7. 1. 2026",  kg: 35, price: 218 },
-    { date: "6. 1. 2026",  kg: 34, price: 211 },
-    { date: "5. 1. 2026",  kg: 33, price: 205 },
-    { date: "4. 1. 2026",  kg: 30, price: 185 },
-    { date: "3. 1. 2026",  kg: 9,  price: 55 }
-];
+  <script>
+    const CHANNEL_ID = 3224423;
+    const BASE_URL = "https://api.thingspeak.com/channels/" + CHANNEL_ID;
 
-const tbody = document.getElementById("history");
+    async function loadLatest() {
+      try {
+        const res = await fetch(BASE_URL + "/feeds/last.json");
+        const data = await res.json();
+        document.getElementById("power").textContent = data.field4 ? Number(data.field4).toFixed(0) : "---";
+        document.getElementById("energy").textContent = data.field2 ? Number(data.field2).toFixed(3) : "---";
+      } catch (e) {
+        console.error("Chyba při načítání aktuálních dat:", e);
+      }
+    }
 
-data.forEach(row => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-        <td>${row.date}</td>
-        <td>${row.kg}</td>
-        <td>${row.price}</td>
-    `;
-    tbody.appendChild(tr);
-});
-</script>
+    async function loadToday() {
+      try {
+        const res = await fetch(BASE_URL + "/feeds.json?results=200");
+        const data = await res.json();
+        renderHistory(data.feeds, 1);
+      } catch (e) {
+        console.error("Chyba při načítání dnešní historie:", e);
+      }
+    }
 
+    async function loadMonth() {
+      try {
+        const res = await fetch(BASE_URL + "/feeds.json?results=800");
+        const data = await res.json();
+        renderHistory(data.feeds, 30);
+      } catch (e) {
+        console.error("Chyba při načítání měsíční historie:", e);
+      }
+    }
+
+    function renderHistory(feeds, days) {
+      const tbody = document.getElementById("history");
+      tbody.innerHTML = "";
+      const now = new Date();
+
+      feeds.reverse().forEach(f => {
+        const time = new Date(f.created_at);
+        const diffDays = (now - time) / (1000 * 60 * 60 * 24);
+        if (diffDays <= days) {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${time.toLocaleString()}</td>
+            <td>${f.field4 ? Number(f.field4).toFixed(0) : "---"}</td>
+            <td>${f.field2 ? Number(f.field2).toFixed(3) : "---"}</td>
+          `;
+          tbody.appendChild(tr);
+        }
+      });
+    }
+
+    // auto refresh
+    loadLatest();
+    setInterval(loadLatest, 30000);
+  </script>
 </body>
 </html>
