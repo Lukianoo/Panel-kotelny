@@ -19,7 +19,8 @@ header{
   padding:15px 20px;
   display:flex;
   justify-content:space-between;
-  flex-wrap: wrap;
+  flex-wrap:wrap;
+  align-items:center;
 }
 main{max-width:1400px;margin:auto;padding:20px}
 .grid{
@@ -49,72 +50,30 @@ button{
   background:#1e3c72;
   color:#fff;
   cursor:pointer;
-  width:100%;         /* tlačítka zabírají celou šířku */
-  margin-bottom:10px; /* mezera mezi tlačítky */
-  box-sizing:border-box;
+  width:100%;
+  margin-bottom:10px;
 }
-  /* barvy tlačítek historie */
-#historyBtn { background-color: #ef6c00; color: #fff; }
-#monthHistoryBtn { background-color: #1565c0; color: #fff; }
-#totalHistoryBtn { background-color: #2e7d32; color: #fff; }
-#historyBtn:hover,
-#monthHistoryBtn:hover,
-#totalHistoryBtn:hover { opacity: 0.85; }
+#historyBtn{background:#ef6c00}
+#monthHistoryBtn{background:#1565c0}
+#totalHistoryBtn{background:#2e7d32}
 table{width:100%;border-collapse:collapse}
 th,td{padding:8px;text-align:center}
 th{background:#eee}
-footer img{
-  transition: .3s;
-}
-footer img:hover{
-  transform: scale(1.03);
-  opacity: 1;
-}
 
-/* mobilní úpravy */
-@media (max-width: 600px) {
-  header {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 10px 15px;
-  }
-  main {
-    padding: 10px;
-  }
-  .card {
-    padding: 15px;
-  }
-  h2 { font-size: 14px; }
-  .value { font-size: 24px; }
-  .sub { font-size: 12px; }
-  .settings { grid-template-columns:1fr; }
-  .grid { grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); }
-  #historyBox table, #totalHistoryBox table {
-    display: block;
-    overflow-x: auto;
-    white-space: nowrap;
-  }
+@media (max-width:600px){
+  .settings{grid-template-columns:1fr}
 }
 </style>
 </head>
 
 <body>
 
-<header style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:15px 20px;background:#000;color:#fff;">
-  <!-- hodiny vlevo -->
+<header>
   <div id="clock" style="font-size:25px;"></div>
-
-  <!-- název doprostřed -->
   <div style="flex:1;text-align:center;font-size:25px;font-weight:700;">
     Attack FD 25 AUTOMAT – PANEL KOTELNY
   </div>
-
-  <!-- fullscreen tlačítko napravo -->
-  <div>
-    <button id="fullscreenBtn" style="padding:6px 12px;font-size:14px;border-radius:8px;background:#6a1b9a;color:#fff;border:none;cursor:pointer;">
-      ⛶ Fullscreen
-    </button>
-  </div>
+  <button id="fullscreenBtn" style="width:auto;background:#6a1b9a">⛶ Fullscreen</button>
 </header>
 
 <main>
@@ -141,77 +100,41 @@ footer img:hover{
 </div>
 
 <br>
-<div class="buttons-wrapper">
-  <button id="historyBtn">📅 Denní historie spotřeby</button>
-  <button id="monthHistoryBtn">📆 Měsíční historie spotřeby</button>
-  <button id="totalHistoryBtn">📈 Celková historie spotřeby</button>
-</div>
+<button id="historyBtn">📅 Denní historie spotřeby</button>
+<button id="monthHistoryBtn">📆 Měsíční historie spotřeby</button>
+<button id="totalHistoryBtn">📈 Celková historie spotřeby</button>
 </div>
 
 <div id="historyBox" class="card" style="display:none;margin-top:20px">
-  <h2>📊 Denní historie – uhlí & cena</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Datum</th>
-        <th>Spotřeba (kg)</th>
-        <th>Cena (Kč)</th>
-      </tr>
-    </thead>
-    <tbody id="historyTable"></tbody>
-  </table>
+  <table><tbody id="historyTable"></tbody></table>
 </div>
 <div id="monthHistoryBox" class="card" style="display:none;margin-top:20px">
-  <h2>📆 Měsíční historie – uhlí & cena</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Měsíc</th>
-        <th>Spotřeba (kg)</th>
-        <th>Cena (Kč)</th>
-      </tr>
-    </thead>
-    <tbody id="monthHistoryTable"></tbody>
-  </table>
+  <table><tbody id="monthHistoryTable"></tbody></table>
 </div>
-
 <div id="totalHistoryBox" class="card" style="display:none;margin-top:20px">
-  <h2>📈 Celková historie – od začátku měření</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Období</th>
-        <th>Spotřeba (kg)</th>
-        <th>Cena (Kč)</th>
-      </tr>
-    </thead>
-    <tbody id="totalHistoryTable"></tbody>
-  </table>
+  <table><tbody id="totalHistoryTable"></tbody></table>
 </div>
-
-<br>
 
 <div class="card">
 <h2>⚙️ Nastavení</h2>
 <div class="settings">
-  <div>
-    <label>Kg uhlí / 10 min</label>
-    <input type="number" id="kg10min" step="0.1">
-  </div>
-  <div>
-    <label>Cena / kg</label>
-    <input type="number" id="priceKg" step="0.1">
-  </div>
+  <div><label>Kg uhlí / 10 min</label><input type="number" id="kg10min"></div>
+  <div><label>Cena / kg</label><input type="number" id="priceKg"></div>
 </div>
 </div>
 
 </main>
 
 <script>
-const CHANNEL = 231269;
+/* ====== NASTAVENÍ KANÁLŮ ====== */
+const CHANNEL = 231269;        // hlavní kanál (kotel)
+const OUT_CHANNEL = 774246;    // ← SEM dej ID kanálu s venkovní teplotou
+const OUT_FIELD = 1;           // ← field číslo (1–8)
+
 const ENERGY = 4.8;
 const EFF = 0.75;
 
+/* ====== INIT ====== */
 kg10min.value = localStorage.kg10min || 2.5;
 priceKg.value = localStorage.priceKg || 6.2;
 
@@ -231,198 +154,63 @@ function secToKg(sec){
   return Math.max(0,(sec/600)*(+kg10min.value||2.5));
 }
 
-function todayStartISO(){
-  const d = new Date();
-  d.setHours(0,0,0,0);
-  return localISO(d);
+async function fetchFeeds(ch, p){
+  const r = await fetch(`https://api.thingspeak.com/channels/${ch}/feeds.json?${p}`);
+  return (await r.json()).feeds || [];
 }
 
-
-function localISO(d){
-  const z = n => String(n).padStart(2,"0");
-  return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}T${z(d.getHours())}:${z(d.getMinutes())}:${z(d.getSeconds())}`;
-}
-
-function monthStartISO(){
-  const d = new Date();
-  d.setDate(1);
-  d.setHours(0,0,0,0);
-  return localISO(d);
-}
-
-
-async function fetchFeeds(p){
-  try{
-    const r=await fetch(`https://api.thingspeak.com/channels/${CHANNEL}/feeds.json?${p}`);
-    return (await r.json()).feeds||[];
-  }catch(e){return[];}
-}
-
+/* ====== HLAVNÍ DATA ====== */
 async function updateCurrent(){
-  const cur=await fetchFeeds("results=1");
-  if(!cur.length)return;
-  const f=cur[0];
-  const tK=+f.field5||0;
-  const tZ=+f.field1||0;
+  const f = (await fetchFeeds(CHANNEL,"results=1"))[0];
+  if(!f) return;
 
-  tKotel.textContent=tK.toFixed(1)+" °C";
-  tZpet.textContent=tZ.toFixed(1)+" °C";
-  
-  tVenku.textContent=(+f.field4||0).toFixed(1)+" °C";
-  deltaT.textContent=(tK-tZ).toFixed(1)+" °C";
+  const tK = +f.field5 || 0;
+  const tZ = +f.field1 || 0;
 
-  const totalSec=+f.field8||0;
-  feedTotal.textContent=secToHMS(totalSec);
+  tKotel.textContent = tK.toFixed(1)+" °C";
+  tZpet.textContent  = tZ.toFixed(1)+" °C";
+  deltaT.textContent = (tK-tZ).toFixed(1)+" °C";
+  feedTotal.textContent = secToHMS(+f.field8||0);
 }
 
+/* ====== VENKOVNÍ TEPLOTA – JINÝ KANÁL ====== */
+async function updateOutsideTemp(){
+  const f = (await fetchFeeds(OUT_CHANNEL,"results=1"))[0];
+  if(!f) return;
+
+  const t = +f[`field${OUT_FIELD}`];
+  if(!isNaN(t)){
+    tVenku.textContent = t.toFixed(1)+" °C";
+  }
+}
+
+/* ====== SPOTŘEBA ====== */
 async function updateHour(){
-  const f=await fetchFeeds("minutes=60&results=120");
-  if(f.length<2)return;
-  const kg=secToKg(f.at(-1).field8-f[0].field8);
-  kgHour.textContent=kg.toFixed(2)+" kg";
-  powerKWbig.textContent=(kg*ENERGY*EFF).toFixed(1)+" kWh";
+  const f = await fetchFeeds(CHANNEL,"minutes=60&results=120");
+  if(f.length<2) return;
+  const kg = secToKg(f.at(-1).field8 - f[0].field8);
+  kgHour.textContent = kg.toFixed(2)+" kg";
+  powerKWbig.textContent = (kg*ENERGY*EFF).toFixed(1)+" kWh";
 }
 
-async function updateDay(){
-  const f=await fetchFeeds("start="+todayStartISO()+"&results=2000");
-  if(f.length<2)return;
-  const kg=secToKg(f.at(-1).field8-f[0].field8);
-  kgDay.textContent=kg.toFixed(0)+" kg";
-  costDay.textContent=(kg*(+priceKg.value||6.2)).toFixed(0)+" Kč";
-}
+/* ====== START ====== */
+updateClock();
+updateCurrent();
+updateOutsideTemp();
+updateHour();
 
-async function updateMonth(){
-  const f = await fetchFeeds(
-    "start=" + monthStartISO() + "&results=8000"
-  );
-  if(f.length < 2){
-    kgMonth.textContent = "0 kg";
-    costMonth.textContent = "0 Kč";
-    return;
-  }
-
-  const sec = f.at(-1).field8 - f[0].field8;
-  const kg = secToKg(sec);
-
-  kgMonth.textContent = kg.toFixed(0) + " kg";
-  costMonth.textContent =
-    (kg * (+priceKg.value || 6.2)).toFixed(0) + " Kč";
-}
-
-
-historyBtn.onclick=async()=>{
-  historyBox.style.display=historyBox.style.display==="none"?"block":"none";
-  historyTable.innerHTML="";
-  const price=+priceKg.value||6.2;
-  for(let i=0;i<14;i++){
-    const d1=new Date();d1.setDate(d1.getDate()-i);d1.setHours(0,0,0,0);
-    const d2=new Date(d1);d2.setDate(d2.getDate()+1);
-   const f = await fetchFeeds(`start=${localISO(d1)}&end=${localISO(d2)}&results=2000`);
-
-    if(f.length>1){
-      const kg=secToKg(f.at(-1).field8-f[0].field8);
-      historyTable.innerHTML+=`<tr><td>${d1.toLocaleDateString("cs-CZ")}</td><td>${kg.toFixed(0)}</td><td>${(kg*price).toFixed(0)}</td></tr>`;
-    }
-  }
-};
-
-monthHistoryBtn.onclick = async () => {
-  monthHistoryBox.style.display =
-    monthHistoryBox.style.display === "none" ? "block" : "none";
-
-  monthHistoryTable.innerHTML = "";
-  const price = +priceKg.value || 6.2;
-
-  for (let i = 0; i < 12; i++) {
-    const s = new Date();
-    s.setMonth(s.getMonth() - i, 1);
-    s.setHours(0, 0, 0, 0);
-
-    const e = new Date(s);
-    e.setMonth(e.getMonth() + 1);
-
-    const f = await fetchFeeds(
-      `start=${localISO(s)}&end=${localISO(e)}&results=8000`
-    );
-
-    if (f.length > 1) {
-      const kg = secToKg(f.at(-1).field8 - f[0].field8);
-      monthHistoryTable.innerHTML += `<tr>
-        <td>${s.toLocaleDateString("cs-CZ", { month: "long", year: "numeric" })}</td>
-        <td>${kg.toFixed(0)}</td>
-        <td>${(kg * price).toFixed(0)}</td>
-      </tr>`;
-    }
-  }
-};
-
-
-totalHistoryBtn.onclick = async () => {
-  totalHistoryBox.style.display =
-    totalHistoryBox.style.display === "none" ? "block" : "none";
-
-  totalHistoryTable.innerHTML = "";
-
-  const price = +priceKg.value || 6.2;
-
-  const f = await fetchFeeds("results=8000");
-  if (f.length < 2) return;
-
-  const sec = f.at(-1).field8 - f[0].field8;
-  const kg = secToKg(sec);
-  const cost = kg * price;
-
-  totalHistoryTable.innerHTML = `
-    <tr>
-      <td>Celé období (${new Date(f[0].created_at).toLocaleDateString("cs-CZ")} – ${new Date(f.at(-1).created_at).toLocaleDateString("cs-CZ")})</td>
-      <td>${kg.toFixed(1)}</td>
-      <td>${cost.toFixed(0)}</td>
-    </tr>
-  `;
-};
-
-kg10min.oninput=()=>{localStorage.kg10min=kg10min.value;updateHour();updateDay();updateMonth();}
-priceKg.oninput=()=>{localStorage.priceKg=priceKg.value;updateDay();updateMonth();}
-
-updateClock();updateCurrent();updateHour();updateDay();updateMonth();
 setInterval(updateClock,1000);
 setInterval(updateCurrent,30000);
+setInterval(updateOutsideTemp,300000);
 setInterval(updateHour,300000);
-setInterval(updateDay,900000);
-setInterval(updateMonth,1800000);
 
+/* ====== FULLSCREEN ====== */
 fullscreenBtn.onclick = () => {
-  const elem = document.documentElement; // celý dokument
-  if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-    // Zapnutí fullscreen
-    if (elem.requestFullscreen) {
-      elem.requestFullscreen();
-    } else if (elem.webkitRequestFullscreen) { // iOS Safari
-      elem.webkitRequestFullscreen({ navigationUI: "hide" });
-    } else if (elem.msRequestFullscreen) { // IE/Edge
-      elem.msRequestFullscreen();
-    }
-  } else {
-    // Vypnutí fullscreen
-    if (document.exitFullscreen) {
-      document.exitFullscreen();
-    } else if (document.webkitExitFullscreen) {
-      document.webkitExitFullscreen();
-    } else if (document.msExitFullscreen) {
-      document.msExitFullscreen();
-    }
-  }
+  document.fullscreenElement
+    ? document.exitFullscreen()
+    : document.documentElement.requestFullscreen();
 };
-  
 </script>
-
-<footer style="text-align:center;margin:40px 0 20px;opacity:.85">
-  <img 
-    src="https://raw.githubusercontent.com/Lukianoo/fd25-dashboard/main/logo-elektroservis.png"
-    alt="Elektroservis logo"
-    style="max-width:400px;width:100%;filter:drop-shadow(0 4px 8px rgba(0,0,0,.4))"
-  >
-</footer>
 
 </body>
 </html>
